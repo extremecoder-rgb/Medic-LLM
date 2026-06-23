@@ -1,0 +1,36 @@
+{
+    "patient_id": "P1003",
+    "patient": {
+        "age": 78,
+        "gender": "male"
+    },
+    "conditions": [
+        "Chronic Kidney Disease Stage 3",
+        "Type 2 Diabetes Mellitus",
+        "Congestive Heart Failure",
+        "Atrial Fibrillation"
+    ],
+    "medications": [
+        "Insulin Glargine 20 units",
+        "Furosemide 40mg",
+        "Carvedilol 12.5mg",
+        "Warfarin 5mg",
+        "Epoetin Alfa"
+    ],
+    "observations": [
+        "eGFR: 45 mL/min/1.73m²",
+        "Creatinine: 1.8 mg/dL",
+        "BNP: 850 pg/mL",
+        "INR: 2.5",
+        "HbA1c: 8.1%"
+    ],
+    "allergies": [
+        "Iodine contrast"
+    ],
+    "encounters": [
+        "2024-01-10: ER visit for shortness of breath",
+        "2024-02-05: Nephrology follow-up",
+        "2024-02-28: Cardiology check",
+        "2024-03-15: Primary care visit"
+    ]
+}

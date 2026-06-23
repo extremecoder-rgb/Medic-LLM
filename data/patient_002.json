@@ -1,0 +1,31 @@
+{
+    "patient_id": "P1002",
+    "patient": {
+        "age": 42,
+        "gender": "female"
+    },
+    "conditions": [
+        "Asthma",
+        "Migraine",
+        "Generalized Anxiety Disorder"
+    ],
+    "medications": [
+        "Albuterol inhaler",
+        "Sumatriptan 50mg",
+        "Sertraline 50mg"
+    ],
+    "observations": [
+        "Peak Flow: 380 L/min",
+        "BMI: 24.5",
+        "PHQ-9 Score: 8"
+    ],
+    "allergies": [
+        "Aspirin",
+        "Shellfish"
+    ],
+    "encounters": [
+        "2024-01-05: Asthma exacerbation",
+        "2024-02-14: Mental health follow-up",
+        "2024-03-01: Routine checkup"
+    ]
+}

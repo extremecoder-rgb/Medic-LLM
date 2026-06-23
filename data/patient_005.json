@@ -1,0 +1,31 @@
+{
+    "patient_id": "P1005",
+    "patient": {
+        "age": 55,
+        "gender": "other"
+    },
+    "conditions": [
+        "Major Depressive Disorder",
+        "Chronic Low Back Pain",
+        "Obesity"
+    ],
+    "medications": [
+        "Escitalopram 20mg",
+        "Gabapentin 300mg",
+        "Naproxen 500mg"
+    ],
+    "observations": [
+        "PHQ-9 Score: 15",
+        "BMI: 34.2",
+        "Pain Scale: 6/10"
+    ],
+    "allergies": [
+        "Codeine",
+        "Latex"
+    ],
+    "encounters": [
+        "2024-01-25: Psychiatry follow-up",
+        "2024-02-18: Pain management",
+        "2024-03-20: Weight management consult"
+    ]
+}

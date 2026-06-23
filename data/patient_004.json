@@ -1,0 +1,25 @@
+{
+    "patient_id": "P1004",
+    "patient": {
+        "age": 35,
+        "gender": "female"
+    },
+    "conditions": [
+        "Hypothyroidism",
+        "Iron Deficiency Anemia"
+    ],
+    "medications": [
+        "Levothyroxine 75mcg",
+        "Ferrous Sulfate 325mg"
+    ],
+    "observations": [
+        "TSH: 4.2 mIU/L",
+        "Hemoglobin: 10.2 g/dL",
+        "Ferritin: 15 ng/mL"
+    ],
+    "allergies": [],
+    "encounters": [
+        "2024-01-20: Thyroid follow-up",
+        "2024-03-05: Fatigue evaluation"
+    ]
+}

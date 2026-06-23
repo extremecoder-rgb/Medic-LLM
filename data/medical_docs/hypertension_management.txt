@@ -1,0 +1,53 @@
+Hypertension Management Guidelines
+
+Definition:
+Hypertension is defined as systolic blood pressure >= 130 mmHg
+or diastolic blood pressure >= 80 mmHg on repeated measurements.
+
+Classification:
+- Normal: < 120/80 mmHg
+- Elevated: 120-129/< 80 mmHg
+- Stage 1: 130-139/80-89 mmHg
+- Stage 2: >= 140/>= 90 mmHg
+- Hypertensive Crisis: > 180/> 120 mmHg
+
+Complications:
+- Coronary artery disease
+- Heart failure
+- Stroke
+- Chronic kidney disease
+- Retinopathy
+- Peripheral vascular disease
+
+Pharmacological Treatment:
+
+First-Line Agents:
+1. ACE Inhibitors (Lisinopril, Enalapril)
+   - Block angiotensin-converting enzyme
+   - Renoprotective in diabetes
+   - Monitor: potassium, creatinine
+
+2. ARBs (Losartan, Valsartan)
+   - Alternative if ACE inhibitor cough occurs
+   - Similar benefits to ACE inhibitors
+
+3. Calcium Channel Blockers (Amlodipine)
+   - Vasodilation without reflex tachycardia
+   - Effective in elderly patients
+
+4. Thiazide Diuretics (Hydrochlorothiazide)
+   - Reduce blood volume
+   - Effective in salt-sensitive hypertension
+
+Treatment Targets:
+- General population: < 130/80 mmHg
+- Diabetes with CKD: < 130/80 mmHg
+- Elderly (>65): < 130 systolic if tolerated
+
+Lifestyle Modifications:
+- DASH diet (rich in fruits, vegetables, low-fat dairy)
+- Sodium restriction (< 2300 mg/day)
+- Regular aerobic exercise
+- Weight loss (1 kg loss = 1 mmHg reduction)
+- Limit alcohol intake
+- Smoking cessation

@@ -1,0 +1,32 @@
+{
+    "patient_id": "P1001",
+    "patient": {
+        "age": 65,
+        "gender": "male"
+    },
+    "conditions": [
+        "Type 2 Diabetes Mellitus",
+        "Essential Hypertension",
+        "Hyperlipidemia"
+    ],
+    "medications": [
+        "Metformin 500mg",
+        "Lisinopril 10mg",
+        "Atorvastatin 20mg"
+    ],
+    "observations": [
+        "HbA1c: 7.2%",
+        "Blood Pressure: 140/90 mmHg",
+        "Fasting Glucose: 145 mg/dL",
+        "LDL Cholesterol: 130 mg/dL"
+    ],
+    "allergies": [
+        "Penicillin",
+        "Sulfa drugs"
+    ],
+    "encounters": [
+        "2024-01-15: Follow-up for diabetes management",
+        "2024-02-20: Blood pressure check",
+        "2024-03-10: Annual physical exam"
+    ]
+}

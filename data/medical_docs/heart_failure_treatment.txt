@@ -1,0 +1,49 @@
+Heart Failure Treatment Overview
+
+Definition:
+Heart failure is a clinical syndrome resulting from structural or
+functional impairment of ventricular filling or ejection of blood.
+
+Classification (NYHA Functional Class):
+- Class I: No limitation of physical activity
+- Class II: Slight limitation, comfortable at rest
+- Class III: Marked limitation, comfortable only at rest
+- Class IV: Unable to carry out any activity without symptoms
+
+Ejection Fraction Categories:
+- HFrEF: Heart failure with reduced EF (< 40%)
+- HFpEF: Heart failure with preserved EF (>= 50%)
+- HFmrEF: Heart failure with mildly reduced EF (41-49%)
+
+Pharmacological Treatment (HFrEF):
+
+1. ACE Inhibitors/ARBs/ARNI
+   - First-line for all HFrEF patients
+   - ARNI (Sacubitril/Valsartan) preferred over ACE inhibitor
+   - Reduces mortality and hospitalizations
+
+2. Beta-Blockers (Carvedilol, Metoprolol, Bisoprolol)
+   - Initiated when patient is stable
+   - Reduces heart rate and myocardial oxygen demand
+   - Proven mortality benefit
+
+3. Mineralocorticoid Receptor Antagonists (Spironolactone)
+   - Added for NYHA Class II-IV
+   - Reduces mortality and hospitalizations
+   - Monitor potassium closely
+
+4. SGLT2 Inhibitors (Dapagliflozin, Empagliflozin)
+   - New standard of care
+   - Benefits in diabetes and non-diabetes
+   - Reduces cardiovascular death
+
+5. Loop Diuretics (Furosemide)
+   - Symptom management (fluid overload)
+   - No mortality benefit
+   - Dose adjusted based on volume status
+
+Monitoring:
+- Daily weight monitoring
+- Electrolytes and renal function every 1-3 months
+- Echocardiography annually
+- BNP/NT-proBNP levels

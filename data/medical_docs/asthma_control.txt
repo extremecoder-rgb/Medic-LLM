@@ -1,0 +1,61 @@
+Asthma Management and Control
+
+Definition:
+Asthma is a chronic inflammatory disorder of the airways characterized
+by reversible airflow obstruction, bronchial hyperresponsiveness,
+and underlying inflammation.
+
+Symptoms:
+- Wheezing
+- Shortness of breath
+- Chest tightness
+- Coughing (especially at night or early morning)
+
+Classification by Severity:
+- Intermittent: Symptoms <= 2 days/week, nighttime <= 2x/month
+- Mild Persistent: Symptoms > 2 days/week, nighttime 3-4x/month
+- Moderate Persistent: Daily symptoms, nighttime > 1x/week
+- Severe Persistent: Symptoms throughout day, frequent nighttime
+
+Treatment:
+
+Step 1 (Intermittent):
+- Short-acting beta-agonist (Albuterol) as needed
+
+Step 2 (Mild Persistent):
+- Low-dose inhaled corticosteroid (ICS)
+- Alternatives: Leukotriene modifier
+
+Step 3 (Moderate Persistent):
+- Low-dose ICS + Long-acting beta-agonist (LABA)
+- Or medium-dose ICS
+
+Step 4 (Moderate-Severe):
+- Medium-dose ICS + LABA
+- Consider adding LAMA (Tiotropium)
+
+Step 5 (Severe):
+- High-dose ICS + LABA
+- Consider biologic therapy (Omalizumab, Mepolizumab)
+- Or oral corticosteroids
+
+Inhaler Technique:
+- Shake inhaler before use
+- Breathe out fully
+- Activate inhaler while breathing in slowly
+- Hold breath for 10 seconds
+- Rinse mouth after ICS use
+
+Asthma Action Plan:
+- Green Zone: All clear, continue medications
+- Yellow Zone: Caution, increase treatment
+- Red Zone: Medical emergency, seek immediate care
+
+Triggers to Avoid:
+- Tobacco smoke
+- Dust mites
+- Pet dander
+- Pollen
+- Cold air
+- Air pollution
+- Respiratory infections
