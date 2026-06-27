@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediTwin - FHIR-Aware Clinical RAG Assistant</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-surface: #1e293b;
+            --bg-surface-glass: rgba(30, 41, 59, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(20, 184, 166, 0.25);
+            
+            --color-primary: #14b8a6; /* Teal */
+            --color-primary-hover: #0d9488;
+            --color-secondary: #6366f1; /* Indigo */
+            
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-bright: #ffffff;
+            
+            --status-green: #10b981;
+            --status-yellow: #f59e0b;
+            --status-red: #f43f5e;
+            
+            --shadow-glow: 0 0 15px rgba(20, 184, 166, 0.15);
+            --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.3);
+            
+            --transition-speed: 0.25s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+        }
+
+        /* Sidebar Styling */
+        aside {
+            width: 280px;
+            background-color: rgba(15, 23, 42, 0.85);
+            border-right: 1px solid var(--border-glass);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .brand-logo {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 0 15px rgba(20, 184, 166, 0.3);
+        }
+
+        .brand-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #a5f3fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .nav-item button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: left;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .nav-item button:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .nav-item.active button {
+            background: linear-gradient(90deg, rgba(20, 184, 166, 0.15) 0%, rgba(20, 184, 166, 0.03) 100%);
+            color: var(--color-primary);
+            border-left: 3px solid var(--color-primary);
+            padding-left: 13px;
+        }
+
+        .status-panel {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: auto;
+        }
+
+        .status-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-red);
+            box-shadow: 0 0 8px var(--status-red);
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.online {
+            background-color: var(--status-green);
+            box-shadow: 0 0 8px var(--status-green);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-val {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* Main Workspace Styling */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+            border-bottom: 1px solid var(--border-glass);
+            background-color: rgba(11, 15, 25, 0.5);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-title h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .preset-select {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .preset-select:focus {
+            border-color: var(--color-primary);
+        }
+
+        /* Dashboard Container */
+        .workspace-content {
+            padding: 40px;
+            flex-grow: 1;
+            display: none;
+        }
+
+        .workspace-content.active {
+            display: block;
+        }
+
+        /* Grid Layouts */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 32px;
+            height: calc(100vh - 180px);
+            align-items: stretch;
+        }
+
+        /* Cards/Panels styling */
+        .glass-card {
+            background-color: var(--bg-surface-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-subtle);
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-bright);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Text Area / JSON editor */
+        .json-editor-container {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea.json-textarea {
+            width: 100%;
+            flex-grow: 1;
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            color: #38bdf8;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 16px;
+            resize: none;
+            outline: none;
+            tab-size: 2;
+            transition: border-color var(--transition-speed);
+        }
+
+        textarea.json-textarea:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.15);
+        }
+
+        /* Buttons styling */
+        .btn {
+            background-color: var(--color-primary);
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn:hover {
+            background-color: var(--color-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-glass);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--text-bright);
+        }
+
+        .card-actions {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Parsed Patient Visualizer */
+        .patient-viz {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .patient-placeholder {
+            margin: auto;
+            text-align: center;
+            color: var(--text-muted);
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .patient-placeholder i {
+            color: var(--color-secondary);
+            opacity: 0.6;
+        }
+
+        .demographics-banner {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(20, 184, 166, 0.15) 100%);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .demo-item {
+            text-align: center;
+        }
+
+        .demo-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .demo-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        .clinical-section {
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 16px;
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chip-condition {
+            background-color: rgba(20, 184, 166, 0.12);
+            color: #2dd4bf;
+            border: 1px solid rgba(20, 184, 166, 0.2);
+        }
+
+        .chip-medication {
+            background-color: rgba(99, 102, 241, 0.12);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .chip-observation {
+            background-color: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .chip-allergy {
+            background-color: rgba(244, 63, 94, 0.12);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .chip-encounter {
+            background-color: rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .no-data {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Tab Switchers */
+        .workspace-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-glass);
+            margin-bottom: 24px;
+            gap: 24px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--color-primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--color-primary);
+            box-shadow: 0 0 10px var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+            flex-grow: 1;
+            flex-direction: column;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Clinical Assistant Tab specific styling */
+        .question-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .input-query {
+            flex-grow: 1;
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            color: var(--text-main);
+            padding: 16px;
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            height: 60px;
+            transition: border-color 0.2s;
+        }
+
+        .input-query:focus {
+            border-color: var(--color-primary);
+        }
+
+        /* Output Response Display */
+        .response-container {
+            flex-grow: 1;
+            background-color: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 480px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .response-container h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            color: var(--text-bright);
+            margin-top: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .response-container h3:first-child {
+            margin-top: 0;
+        }
+
+        .response-container p {
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .response-container ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .response-container li {
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .response-container strong {
+            color: var(--text-bright);
+        }
+
+        .response-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            height: 100%;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .response-placeholder i {
+            font-size: 40px;
+            opacity: 0.4;
+            color: var(--color-primary);
+        }
+
+        /* Loading Skeleton */
+        .skeleton-loader {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .skeleton-line {
+            height: 14px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 37%, rgba(255, 255, 255, 0.03) 63%);
+            background-size: 400% 100%;
+            animation: skeleton-loading 1.4s ease infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-line.h-title {
+            width: 40%;
+            height: 20px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-line.w-80 { width: 80%; }
+        .skeleton-line.w-70 { width: 70%; }
+        .skeleton-line.w-90 { width: 90%; }
+        .skeleton-line.w-50 { width: 50%; }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 100% 50%; }
+            100% { background-position: 0 50%; }
+        }
+
+        /* RAG Sources Accordion */
+        .sources-accordion {
+            margin-top: 20px;
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.01);
+            overflow: hidden;
+            display: none;
+        }
+
+        .sources-header {
+            padding: 12px 18px;
+            background-color: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        .sources-content {
+            padding: 18px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            border-top: 1px solid var(--border-glass);
+            background-color: rgba(0, 0, 0, 0.2);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .source-item {
+            border-left: 2px solid var(--color-primary);
+            padding-left: 12px;
+        }
+
+        .source-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .source-text {
+            font-size: 13px;
+            color: var(--text-main);
+            font-family: monospace;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Guidelines Tab Styling */
+        .guidelines-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .guideline-card {
+            background-color: var(--bg-surface-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+        }
+
+        .guideline-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.1);
+        }
+
+        .guideline-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guideline-content {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+            max-height: 180px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        /* Suggestions Row */
+        .suggestions-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .suggestion-chip {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            color: var(--text-muted);
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background-color: rgba(20, 184, 166, 0.1);
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div class="brand">
+            <div class="brand-logo">
+                <i data-lucide="brain"></i>
+            </div>
+            <div class="brand-name">MediTwin</div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" data-tab="patient-tab">
+                <button onclick="switchTab('patient-tab')">
+                    <i data-lucide="user"></i>
+                    <span>Patient Profile</span>
+                </button>
+            </li>
+            <li class="nav-item" data-tab="clinical-tab">
+                <button onclick="switchTab('clinical-tab')">
+                    <i data-lucide="activity"></i>
+                    <span>Clinical Assistant</span>
+                </button>
+            </li>
+            <li class="nav-item" data-tab="guidelines-tab">
+                <button onclick="switchTab('guidelines-tab')">
+                    <i data-lucide="file-text"></i>
+                    <span>RAG Database</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- API status indicators -->
+        <div class="status-panel">
+            <div class="status-title">
+                <span>System Status</span>
+                <span id="api-indicator" class="status-indicator"></span>
+            </div>
+            <div class="status-row">
+                <span>API Connection:</span>
+                <span id="status-conn" class="status-val text-muted">Checking...</span>
+            </div>
+            <div class="status-row">
+                <span>Inference Engine:</span>
+                <span id="status-engine" class="status-val text-muted">Checking...</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+        <header>
+            <div class="header-title">
+                <h1 id="page-title">FHIR Patient Profile</h1>
+                <p id="page-subtitle">Load patient records, validate schemas, and compile demographics cards.</p>
+            </div>
+            <div class="header-actions">
+                <label for="presets" style="font-size: 13px; color: var(--text-muted);">Quick Presets:</label>
+                <select id="presets" class="preset-select" onchange="loadPresetPatient()">
+                    <option value="">-- Select Patient --</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Workspace content cards -->
+
+        <!-- Tab 1: Patient Parser -->
+        <div id="patient-tab" class="workspace-content active">
+            <div class="grid-2col">
+                <!-- Raw FHIR JSON input -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><i data-lucide="code" style="color:var(--color-primary)"></i> FHIR JSON Editor</h2>
+                            <p class="card-subtitle">Input Patient resource JSON object containing medications and conditions.</p>
+                        </div>
+                    </div>
+                    <div class="json-editor-container">
+                        <textarea id="json-input" class="json-textarea" placeholder="Paste FHIR Patient JSON here..."></textarea>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="formatJSON()">Format JSON</button>
+                        <button class="btn" onclick="parsePatient()"><i data-lucide="check"></i> Parse Patient</button>
+                    </div>
+                </div>
+
+                <!-- Parsed visualizer card -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><i data-lucide="card" style="color:var(--color-secondary)"></i> Patient Medical Card</h2>
+                            <p class="card-subtitle">FHIR validated structures compiled into active clinical modules.</p>
+                        </div>
+                    </div>
+                    <div class="patient-viz">
+                        <!-- Demographics placeholder -->
+                        <div id="patient-viz-placeholder" class="patient-placeholder">
+                            <i data-lucide="folder-heart" style="width: 48px; height: 48px;"></i>
+                            <p>No patient record loaded. Choose a preset above or click "Parse Patient" to view the structured care card.</p>
+                        </div>
+
+                        <!-- Structured Patient Card (Initially Hidden) -->
+                        <div id="patient-card-content" style="display:none; flex-direction:column; gap:16px;">
+                            <div class="demographics-banner">
+                                <div class="demo-item">
+                                    <div class="demo-label">Patient ID</div>
+                                    <div id="card-id" class="demo-value">unknown</div>
+                                </div>
+                                <div class="demo-item">
+                                    <div class="demo-label">Age</div>
+                                    <div id="card-age" class="demo-value">-</div>
+                                </div>
+                                <div class="demo-item">
+                                    <div class="demo-label">Gender</div>
+                                    <div id="card-gender" class="demo-value">-</div>
+                                </div>
+                            </div>
+
+                            <div class="clinical-section">
+                                <div class="section-header">
+                                    <i data-lucide="shield-alert" style="color:var(--status-red); width: 16px;"></i>
+                                    <span>Allergies & Reactions</span>
+                                </div>
+                                <div id="card-allergies" class="chips-container"></div>
+                            </div>
+
+                            <div class="clinical-section">
+                                <div class="section-header">
+                                    <i data-lucide="activity" style="color:var(--color-primary); width: 16px;"></i>
+                                    <span>Active Conditions / Diagnosis</span>
+                                </div>
+                                <div id="card-conditions" class="chips-container"></div>
+                            </div>
+
+                            <div class="clinical-section">
+                                <div class="section-header">
+                                    <i data-lucide="pill" style="color:var(--color-secondary); width: 16px;"></i>
+                                    <span>Prescribed Medications</span>
+                                </div>
+                                <div id="card-medications" class="chips-container"></div>
+                            </div>
+
+                            <div class="clinical-section">
+                                <div class="section-header">
+                                    <i data-lucide="binary" style="color:var(--status-yellow); width: 16px;"></i>
+                                    <span>Lab Observations</span>
+                                </div>
+                                <div id="card-observations" class="chips-container"></div>
+                            </div>
+
+                            <div class="clinical-section">
+                                <div class="section-header">
+                                    <i data-lucide="clock" style="color:var(--text-muted); width: 16px;"></i>
+                                    <span>Encounters</span>
+                                </div>
+                                <div id="card-encounters" class="chips-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Clinical Assistant Workspace -->
+        <div id="clinical-tab" class="workspace-content">
+            <div class="grid-2col">
+                <!-- Patient context card summary for reference -->
+                <div class="glass-card" style="max-height: calc(100vh - 180px); overflow-y: auto;">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><i data-lucide="user" style="color:var(--color-primary)"></i> Current Patient Context</h2>
+                            <p class="card-subtitle">Active patient profile linked with this clinical session.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="session-patient-details" class="patient-viz">
+                        <!-- Demographics placeholder -->
+                        <div id="session-placeholder" class="patient-placeholder">
+                            <p>Please load and parse a patient profile first under the "Patient Profile" tab.</p>
+                        </div>
+                        
+                        <!-- Mini card container -->
+                        <div id="session-card-content" style="display: none; flex-direction: column; gap:16px;">
+                            <!-- Demographics -->
+                            <div class="demographics-banner" style="grid-template-columns: 1fr 1fr; padding:12px; gap:8px;">
+                                <div class="demo-item">
+                                    <div class="demo-label">ID</div>
+                                    <div id="session-card-id" class="demo-value" style="font-size: 14px;">-</div>
+                                </div>
+                                <div class="demo-item">
+                                    <div class="demo-label">Profile</div>
+                                    <div id="session-card-demog" class="demo-value" style="font-size: 14px;">-</div>
+                                </div>
+                            </div>
+
+                            <div class="clinical-section" style="padding:10px;">
+                                <div class="section-header" style="margin-bottom:6px; font-size:11px;">Conditions</div>
+                                <div id="session-card-conditions" class="chips-container"></div>
+                            </div>
+
+                            <div class="clinical-section" style="padding:10px;">
+                                <div class="section-header" style="margin-bottom:6px; font-size:11px;">Medications</div>
+                                <div id="session-card-medications" class="chips-container"></div>
+                            </div>
+
+                            <div class="clinical-section" style="padding:10px;">
+                                <div class="section-header" style="margin-bottom:6px; font-size:11px;">Allergies</div>
+                                <div id="session-card-allergies" class="chips-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat / Summary Workspace -->
+                <div class="glass-card">
+                    <div class="workspace-tabs">
+                        <button id="tab-btn-query" class="tab-btn active" onclick="switchClinicalWork('query-work')">Clinical Decision Q&A</button>
+                        <button id="tab-btn-summary" class="tab-btn" onclick="switchClinicalWork('summary-work')">Clinical Patient Summary</button>
+                    </div>
+
+                    <!-- Work tab 1: Clinical Query -->
+                    <div id="query-work" class="tab-content active">
+                        <div class="suggestions-row">
+                            <span class="suggestion-chip" onclick="applySuggestion('What should be monitored for this patient?')">What to monitor?</span>
+                            <span class="suggestion-chip" onclick="applySuggestion('Check for any allergy alerts or contraindications.')">Check allergy alerts</span>
+                            <span class="suggestion-chip" onclick="applySuggestion('Summarize key lifestyle guidelines from the RAG store.')">Lifestyle guidelines</span>
+                        </div>
+                        
+                        <div class="question-box">
+                            <textarea id="question-input" class="input-query" placeholder="Ask a clinical question about the patient or guidelines..."></textarea>
+                            <button class="btn" style="height:60px;" onclick="submitQuery()">
+                                <i data-lucide="play"></i> Analyze
+                            </button>
+                        </div>
+
+                        <!-- Response panel -->
+                        <div class="response-container">
+                            <!-- Skeleton loader -->
+                            <div id="query-loader" class="skeleton-loader">
+                                <p style="font-size:12px; color:var(--text-muted); font-style:italic;" id="loader-message">Retrieving evidence-based medical guidelines...</p>
+                                <div class="skeleton-line h-title"></div>
+                                <div class="skeleton-line w-90"></div>
+                                <div class="skeleton-line w-80"></div>
+                                <div class="skeleton-line w-70"></div>
+                                <div class="skeleton-line w-50"></div>
+                            </div>
+
+                            <!-- Real output -->
+                            <div id="query-output-placeholder" class="response-placeholder">
+                                <i data-lucide="brain"></i>
+                                <p>Inference engine online. Enter a question and click Analyze to run a retrieval-augmented model query.</p>
+                            </div>
+                            <div id="query-output-text" style="display:none;"></div>
+                        </div>
+
+                        <!-- RAG Sources Accordion -->
+                        <div id="sources-accordion" class="sources-accordion">
+                            <div class="sources-header" onclick="toggleAccordion()">
+                                <span><i data-lucide="database" style="display:inline-block; width:14px; margin-right:6px; vertical-align:text-bottom;"></i> Retrieved RAG Context Sources</span>
+                                <i id="accordion-arrow" data-lucide="chevron-down" style="width:16px;"></i>
+                            </div>
+                            <div id="sources-content" class="sources-content">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Work tab 2: Patient Summary -->
+                    <div id="summary-work" class="tab-content">
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size:14px; color:var(--text-muted); line-height:1.5;">
+                                Generate a structured patient summary report compiling FHIR demographics, conditions, current medications, observations, and relevant target metrics parsed from medical RAG knowledge guidelines.
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <button class="btn" onclick="submitSummary()"><i data-lucide="file-text"></i> Compile Clinical Summary</button>
+                        </div>
+
+                        <div class="response-container" style="flex-grow:1;">
+                            <!-- Skeleton loader -->
+                            <div id="summary-loader" class="skeleton-loader">
+                                <p style="font-size:12px; color:var(--text-muted); font-style:italic;">Processing patient record & guidelines...</p>
+                                <div class="skeleton-line h-title"></div>
+                                <div class="skeleton-line w-90"></div>
+                                <div class="skeleton-line w-80"></div>
+                                <div class="skeleton-line w-70"></div>
+                            </div>
+
+                            <!-- Real output -->
+                            <div id="summary-output-placeholder" class="response-placeholder">
+                                <i data-lucide="file-text"></i>
+                                <p>Click "Compile Clinical Summary" to synthesize a complete patient clinical report.</p>
+                            </div>
+                            <div id="summary-output-text" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: RAG Database Browser -->
+        <div id="guidelines-tab" class="workspace-content">
+            <div class="guidelines-grid" id="guidelines-list">
+                <!-- Guidelines loaded dynamically -->
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // API Base URL
+        const API_URL = window.location.origin;
+
+        // Current Active Patient Data object
+        let currentPatientObj = null;
+        let patientPresets = {};
+
+        // App Initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            checkSystemStatus();
+            loadPatientPresets();
+            loadGuidelinesStore();
+            // Automatically initialize lucide icons
+            setTimeout(() => { lucide.createIcons(); }, 100);
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all tab content
+            document.querySelectorAll(".workspace-content").forEach(el => {
+                el.classList.remove("active");
+            });
+            // Deactivate all sidebar nav items
+            document.querySelectorAll(".nav-item").forEach(el => {
+                el.classList.remove("active");
+            });
+
+            // Activate target tab content
+            document.getElementById(tabId).classList.add("active");
+            // Activate target sidebar item
+            const navBtn = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+            if (navBtn) navBtn.classList.add("active");
+
+            // Update title/subtitles
+            const titleEl = document.getElementById("page-title");
+            const subtitleEl = document.getElementById("page-subtitle");
+
+            if (tabId === "patient-tab") {
+                titleEl.textContent = "FHIR Patient Profile";
+                subtitleEl.textContent = "Load patient records, validate schemas, and compile demographics cards.";
+            } else if (tabId === "clinical-tab") {
+                titleEl.textContent = "Clinical Assistant Workspace";
+                subtitleEl.textContent = "Query the decision support model or compile diagnostic reports with active patient context.";
+            } else if (tabId === "guidelines-tab") {
+                titleEl.textContent = "RAG reference Database";
+                subtitleEl.textContent = "Browse raw medical reference texts indexed inside the FAISS vector database.";
+            }
+        }
+
+        // Sub-tabs in Clinical Workspace
+        function switchClinicalWork(workId) {
+            document.querySelectorAll("#clinical-tab .tab-content").forEach(el => {
+                el.classList.remove("active");
+            });
+            document.querySelectorAll("#clinical-tab .tab-btn").forEach(el => {
+                el.classList.remove("active");
+            });
+
+            document.getElementById(workId).classList.add("active");
+            
+            if (workId === "query-work") {
+                document.getElementById("tab-btn-query").classList.add("active");
+            } else {
+                document.getElementById("tab-btn-summary").classList.add("active");
+            }
+        }
+
+        // System Health Status Check
+        async function checkSystemStatus() {
+            const apiInd = document.getElementById("api-indicator");
+            const connVal = document.getElementById("status-conn");
+            const engineVal = document.getElementById("status-engine");
+
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    apiInd.classList.add("online");
+                    connVal.textContent = "Online";
+                    connVal.style.color = "var(--status-green)";
+                    
+                    if (data.is_mock) {
+                        engineVal.textContent = "Simulated Fallback (CPU)";
+                        engineVal.style.color = "var(--status-yellow)";
+                    } else if (data.is_fine_tuned) {
+                        engineVal.textContent = "Qwen 2.5 LoRA Active";
+                        engineVal.style.color = "var(--color-primary)";
+                    } else {
+                        engineVal.textContent = "Qwen 2.5 Base";
+                        engineVal.style.color = "var(--text-main)";
+                    }
+                } else {
+                    throw new Error("HTTP error checking health");
+                }
+            } catch (err) {
+                console.error("Health check failed:", err);
+                apiInd.classList.remove("online");
+                connVal.textContent = "Offline";
+                connVal.style.color = "var(--status-red)";
+                engineVal.textContent = "Disconnected";
+                engineVal.style.color = "var(--text-muted)";
+            }
+        }
+
+        // Load Patient Presets from endpoint
+        async function loadPatientPresets() {
+            const selectEl = document.getElementById("presets");
+            try {
+                const response = await fetch(`${API_URL}/patients`);
+                if (response.ok) {
+                    patientPresets = await response.json();
+                    selectEl.innerHTML = '<option value="">-- Select Patient --</option>';
+                    
+                    for (const filename in patientPresets) {
+                        const name = filename.replace("patient_", "").replace(".json", "");
+                        const option = document.createElement("option");
+                        option.value = filename;
+                        option.textContent = `Patient ${name} (${patientPresets[filename].patient_id || 'unknown'})`;
+                        selectEl.appendChild(option);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load patient presets:", err);
+            }
+        }
+
+        // Preset selection handler
+        function loadPresetPatient() {
+            const selectEl = document.getElementById("presets");
+            const val = selectEl.value;
+            const textarea = document.getElementById("json-input");
+            
+            if (val && patientPresets[val]) {
+                textarea.value = JSON.stringify(patientPresets[val], null, 2);
+                parsePatient();
+            }
+        }
+
+        // Clean & Format JSON
+        function formatJSON() {
+            const textarea = document.getElementById("json-input");
+            try {
+                const obj = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(obj, null, 2);
+            } catch (e) {
+                alert("Invalid JSON: " + e.message);
+            }
+        }
+
+        // POST Patient validation/parse
+        async function parsePatient() {
+            const textarea = document.getElementById("json-input");
+            let rawJson = textarea.value.trim();
+
+            if (!rawJson) {
+                alert("Please paste or load a Patient JSON record.");
+                return;
+            }
+
+            let parsedObj;
+            try {
+                parsedObj = JSON.parse(rawJson);
+            } catch (e) {
+                alert("JSON syntax error: " + e.message);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/patient`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(parsedObj)
+                });
+
+                if (response.ok) {
+                    currentPatientObj = parsedObj; // Cache valid patient
+                    
+                    // Render demographics visual card
+                    document.getElementById("patient-viz-placeholder").style.display = "none";
+                    document.getElementById("patient-card-content").style.display = "flex";
+                    
+                    document.getElementById("card-id").textContent = parsedObj.patient_id || "unknown";
+                    document.getElementById("card-age").textContent = parsedObj.patient?.age ?? "-";
+                    document.getElementById("card-gender").textContent = (parsedObj.patient?.gender || "-").toUpperCase();
+                    
+                    renderChips("card-conditions", parsedObj.conditions, "chip-condition");
+                    renderChips("card-medications", parsedObj.medications, "chip-medication");
+                    renderChips("card-observations", parsedObj.observations, "chip-observation");
+                    renderChips("card-allergies", parsedObj.allergies, "chip-allergy");
+                    renderChips("card-encounters", parsedObj.encounters, "chip-encounter");
+
+                    // Synced Session card under Clinical tab
+                    document.getElementById("session-placeholder").style.display = "none";
+                    document.getElementById("session-card-content").style.display = "flex";
+                    document.getElementById("session-card-id").textContent = `ID: ${parsedObj.patient_id || 'unknown'}`;
+                    document.getElementById("session-card-demog").textContent = `${parsedObj.patient?.age || '-'}yo ${parsedObj.patient?.gender || '-'}`;
+                    
+                    renderChips("session-card-conditions", parsedObj.conditions, "chip-condition");
+                    renderChips("session-card-medications", parsedObj.medications, "chip-medication");
+                    renderChips("session-card-allergies", parsedObj.allergies, "chip-allergy");
+
+                    // Auto switch user's tab focus to Clinical Assistant after success
+                    setTimeout(() => {
+                        switchTab("clinical-tab");
+                    }, 500);
+                } else {
+                    const errData = await response.json();
+                    alert(`FHIR Validation Error: ${errData.detail || 'Failed to parse'}`);
+                }
+            } catch (err) {
+                alert(`Error connecting to parser API: ${err.message}`);
+            }
+        }
+
+        // Chip rendering helper
+        function renderChips(containerId, list, chipClass) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+            
+            if (list && list.length > 0) {
+                list.forEach(item => {
+                    const span = document.createElement("span");
+                    span.className = `chip ${chipClass}`;
+                    
+                    // Add allergy alert icon
+                    if (chipClass === 'chip-allergy') {
+                        span.innerHTML = `<i data-lucide="alert-triangle" style="width:12px; height:12px; margin-right:4px;"></i> ${item}`;
+                    } else {
+                        span.textContent = item;
+                    }
+                    container.appendChild(span);
+                });
+            } else {
+                const span = document.createElement("span");
+                span.className = "no-data";
+                span.textContent = "None documented";
+                container.appendChild(span);
+            }
+            lucide.createIcons();
+        }
+
+        // Apply suggestions to Chat Input
+        function applySuggestion(text) {
+            document.getElementById("question-input").value = text;
+        }
+
+        // Submit Q&A Query
+        async function submitQuery() {
+            const questionInput = document.getElementById("question-input");
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                alert("Please enter a question to ask the clinical model.");
+                return;
+            }
+
+            // UI loading states
+            const outputPlaceholder = document.getElementById("query-output-placeholder");
+            const outputText = document.getElementById("query-output-text");
+            const loader = document.getElementById("query-loader");
+            const accordion = document.getElementById("sources-accordion");
+
+            outputPlaceholder.style.display = "none";
+            outputText.style.display = "none";
+            loader.style.display = "flex";
+            accordion.style.display = "none";
+
+            // Rotate loader messages to look organic
+            const loaderMsg = document.getElementById("loader-message");
+            const messages = [
+                "Retrieving medical reference documents...",
+                "Analyzing patient medical history...",
+                "Running clinical inference model...",
+                "Compiling final medical guidelines response..."
+            ];
+            let msgIdx = 0;
+            const msgTimer = setInterval(() => {
+                msgIdx = (msgIdx + 1) % messages.length;
+                loaderMsg.textContent = messages[msgIdx];
+            }, 2500);
+
+            const payload = {
+                question: question,
+                patient_data: currentPatientObj
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/query`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                clearInterval(msgTimer);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    loader.style.display = "none";
+                    outputText.style.display = "block";
+                    
+                    // Render formatted markdown
+                    outputText.innerHTML = parseMarkdown(data.answer);
+                    
+                    // Render retrieved chunks in accordion
+                    const sourcesContent = document.getElementById("sources-content");
+                    sourcesContent.innerHTML = "";
+                    
+                    if (data.retrieved_chunks && data.retrieved_chunks.length > 0) {
+                        accordion.style.display = "block";
+                        data.retrieved_chunks.forEach((chunk, index) => {
+                            const item = document.createElement("div");
+                            item.className = "source-item";
+                            
+                            // Try to infer a title or show Document Rank
+                            item.innerHTML = `
+                                <div class="source-meta">RAG Knowledge Source #${index + 1}</div>
+                                <div class="source-text">${chunk}</div>
+                            `;
+                            sourcesContent.appendChild(item);
+                        });
+                    }
+                } else {
+                    const errData = await response.json();
+                    loader.style.display = "none";
+                    outputPlaceholder.style.display = "flex";
+                    alert(`Error: ${errData.detail || 'Inference failed'}`);
+                }
+            } catch (err) {
+                clearInterval(msgTimer);
+                loader.style.display = "none";
+                outputPlaceholder.style.display = "flex";
+                alert(`API Connection Failed: ${err.message}`);
+            }
+        }
+
+        // Submit Patient Clinical Summary
+        async function submitSummary() {
+            if (!currentPatientObj) {
+                alert("Please load and parse a patient profile first.");
+                return;
+            }
+
+            const outputPlaceholder = document.getElementById("summary-output-placeholder");
+            const outputText = document.getElementById("summary-output-text");
+            const loader = document.getElementById("summary-loader");
+
+            outputPlaceholder.style.display = "none";
+            outputText.style.display = "none";
+            loader.style.display = "flex";
+
+            const payload = {
+                patient_data: currentPatientObj
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/summary`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    loader.style.display = "none";
+                    outputText.style.display = "block";
+                    outputText.innerHTML = parseMarkdown(data.summary);
+                } else {
+                    const errData = await response.json();
+                    loader.style.display = "none";
+                    outputPlaceholder.style.display = "flex";
+                    alert(`Error compiling summary: ${errData.detail || 'Process failed'}`);
+                }
+            } catch (err) {
+                loader.style.display = "none";
+                outputPlaceholder.style.display = "flex";
+                alert(`API Connection Failed: ${err.message}`);
+            }
+        }
+
+        // Toggle Accordion open/close
+        let accordionOpen = false;
+        function toggleAccordion() {
+            const content = document.getElementById("sources-content");
+            const arrow = document.getElementById("accordion-arrow");
+            
+            accordionOpen = !accordionOpen;
+            if (accordionOpen) {
+                content.style.display = "flex";
+                arrow.setAttribute("data-lucide", "chevron-up");
+            } else {
+                content.style.display = "none";
+                arrow.setAttribute("data-lucide", "chevron-down");
+            }
+            lucide.createIcons();
+        }
+
+        // Fetch and show medical guidelines store
+        async function loadGuidelinesStore() {
+            const listEl = document.getElementById("guidelines-list");
+            try {
+                const response = await fetch(`${API_URL}/guidelines`);
+                if (response.ok) {
+                    const guidelines = await response.json();
+                    listEl.innerHTML = "";
+                    
+                    for (const title in guidelines) {
+                        const card = document.createElement("div");
+                        card.className = "guideline-card";
+                        card.innerHTML = `
+                            <h3 class="guideline-title"><i data-lucide="book-open" style="color:var(--color-primary); width:18px;"></i> ${title}</h3>
+                            <div class="guideline-content">${guidelines[title]}</div>
+                        `;
+                        listEl.appendChild(card);
+                    }
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error("Failed to load guidelines database view:", err);
+            }
+        }
+
+        // Simple Markdown parser to compile headers, lists, bold elements, warning callouts
+        function parseMarkdown(text) {
+            if (!text) return "";
+            
+            let html = text;
+            
+            // Clean up code blocks if they are returned by LLM
+            html = html.replace(/```markdown/g, "").replace(/```html/g, "").replace(/```/g, "");
+
+            // Headers
+            html = html.replace(/^### (.*$)/gim, '<h3><i data-lucide="chevrons-right" style="display:inline-block; width:16px; height:16px; margin-right:6px; vertical-align:middle; color:var(--color-primary)"></i> $1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+            // Bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Lists: convert bullet lists
+            html = html.replace(/^\s*-\s+(.*?)$/gim, '<li>$1</li>');
+            // Wrap sets of <li> elements into <ul>
+            // Simple match: finding consecutive list items
+            // Replace groups of <li>...</li> with <ul><li>...</li></ul>
+            html = html.replace(/(<li>.*?<\/li>)+/gs, (match) => `<ul>${match}</ul>`);
+
+            // Warning icon alerts highlight
+            html = html.replace(/⚠️/g, '<span style="color:var(--status-red); font-weight:600;"><i data-lucide="alert-triangle" style="display:inline-block; width:14px; height:14px; margin-right:4px; vertical-align:text-bottom;"></i> WARNING:</span>');
+
+            // Linebreaks
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+    </script>
+</body>
+</html>
